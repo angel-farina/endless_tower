@@ -2,6 +2,8 @@
 
 Torre infinita, tenes que subir y superar el puntaje esquivando los meteoros, inspirado en Icy Tower.
 
+![Captura de pantalla del juego](Captura.JPG)
+
 ## Cómo jugar
 
 1. Ejecuta el juego: `python main.py`
