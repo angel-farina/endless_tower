@@ -303,6 +303,12 @@ sound_manager.play_background_music()
 # Ciclo del juego
 running = True
 while running:
+    """
+    El juego se ejecuta en un ciclo while.
+    Se manejan los eventos del juego, se actualizan los sprites, 
+    se verifica si el jugador pierde, se dibujan los elementos en la pantalla 
+    y se controla el parallax del fondo.
+    """
     clock.tick(FPS)
 
     # Eventos del juego
