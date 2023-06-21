@@ -5,7 +5,7 @@ from sound import SoundManager
 
 # Configuración de la ventana
 WIDTH = 600
-HEIGHT = 600
+HEIGHT = 800
 FPS = 60
 
 # Colores
@@ -17,6 +17,7 @@ DARK_GRAY = (64, 64, 64)
 # Variables globales
 name = ""
 score = 0
+platform_speed = 2
 
 # Inicialización de Pygame y creación de la ventana
 pygame.init()
@@ -45,6 +46,16 @@ meteor_image = pygame.image.load(meteor_image_path).convert_alpha()
 
 # Clase para el personaje principal
 class Player(pygame.sprite.Sprite):
+    """
+    Define al personaje principal del juego. 
+    Hereda de pygame.sprite.Sprite para aprovechar las funcionalidades de los sprites en Pygame. 
+    El constructor __init__ inicializa las propiedades del jugador, como la imagen, la posición inicial, 
+    la velocidad y la gravedad. 
+    El método update actualiza la posición del jugador en función de la entrada del teclado 
+    y gestiona las colisiones con las plataformas. El método jump permite que el jugador salte. 
+    El método handle_platform_collision se encarga de comprobar si el jugador colisiona con alguna 
+    plataforma.
+    """
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
         #self.image = pygame.Surface((50, 50))
@@ -88,7 +99,7 @@ class Player(pygame.sprite.Sprite):
                 game_started = True  # Iniciar el juego y detener la visualización del texto inicial
             self.speed_y = self.jump_power
             if self.speed_x != 0:
-                self.speed_y -= abs(self.speed_x) * 1.5
+                self.speed_y -= abs(self.speed_x) * 0.5
             self.jump_count += 1
 
     def handle_platform_collision(self):
@@ -105,6 +116,12 @@ class Player(pygame.sprite.Sprite):
 
 # Clase para las plataformas
 class Platform(pygame.sprite.Sprite):
+    """
+    Define las plataformas del juego. También hereda de pygame.sprite.Sprite. 
+    El constructor __init__ inicializa las propiedades de la plataforma, como su imagen y posición. 
+    El método update actualiza la posición de la plataforma y la reinicia si se ha desplazado 
+    más allá de la pantalla.
+    """
     def __init__(self, x, y, width):
         pygame.sprite.Sprite.__init__(self)
         #self.image = pygame.Surface((width, 20))
@@ -118,7 +135,7 @@ class Platform(pygame.sprite.Sprite):
 
     def update(self):
         if self.can_move:
-            self.rect.y += 2
+            self.rect.y += platform_speed
             if self.rect.top > HEIGHT:
                 self.reset_position()
 
@@ -138,6 +155,12 @@ class Platform(pygame.sprite.Sprite):
 
 # Clase meteoro
 class Meteor(pygame.sprite.Sprite):
+    """
+    Define los meteoros del juego. Hereda de pygame.sprite.Sprite. 
+    El constructor __init__ inicializa la imagen del meteoro y su posición. 
+    El método update actualiza la posición del meteoro y lo reinicia si se ha desplazado 
+    más allá de la pantalla.
+    """
     def __init__(self):
         super().__init__()
         self.image = meteor_image
@@ -161,6 +184,10 @@ parallax_speeds = [1, 0.5, 0.2]
 # Posiciones iniciales de cada capa del fondo
 parallax_offsets = [0, 0, 0]
 
+"""
+Se crean instancias de pygame.sprite.Group() para almacenar los sprites del jugador, 
+las plataformas y los meteoros.
+"""
 # Creación de grupos de sprites
 all_sprites = pygame.sprite.Group()
 platforms = pygame.sprite.Group()
@@ -190,6 +217,9 @@ for i in range(10):
     platform_y -= random.randint(100, 200)  # Espacio aleatorio entre plataformas
 
 def initial_text():
+    """
+    Muestra un texto inicial en la pantalla antes de que comience el juego.
+    """
     # Configuración de la fuente y el tamaño del texto
     script_dir = os.path.dirname(os.path.abspath(__file__))
     font_path = os.path.join(script_dir, "data", "PublicPixel-z84yD.ttf")
@@ -207,6 +237,9 @@ def initial_text():
     screen.blit(text_surface, text_rect)
 
 def show_score(score):
+    """
+    Muestra el puntaje actual y el puntaje más alto en la pantalla.
+    """
     # Configuración de la fuente y el tamaño del texto
     script_dir = os.path.dirname(os.path.abspath(__file__))
     font_path = os.path.join(script_dir, "data", "PublicPixel-z84yD.ttf")
@@ -232,6 +265,9 @@ def show_score(score):
         screen.blit(name_text, (350, 30))  # Dibuja el texto del nombre asociado al puntaje más alto en la posición (10, 50)
 
 def get_name():
+    """
+    Permite al jugador ingresar su nombre después de haber obtenido un nuevo récord.
+    """
     global name
     input_box = pygame.Rect(150, 400, 300, 40)
     name = ""
