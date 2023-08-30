@@ -1,4 +1,5 @@
 import pygame,os
+#from animations import player_images_idle, player_images_run, player_images_jump, player_images_die, load_animations
 
 # Configuración de la ventana
 WIDTH = 600
@@ -26,17 +27,17 @@ clock = pygame.time.Clock()
 # Obtener la ruta del directorio actual del script
 script_dir = os.path.dirname(os.path.abspath(__file__))
 # Cargar la imagen del jugador
-player_image_path = os.path.join(script_dir, "data", "player1.png")
-player_image = pygame.image.load(player_image_path).convert_alpha()
+#player_image_path = os.path.join(script_dir, "data", "player1.png")
+#player_image = pygame.image.load(player_image_path).convert_alpha()
 # Cargar la imagen de las plataformas
-platform_image_path = os.path.join(script_dir, "data", "platform.png")
+platform_image_path = os.path.join(script_dir, "data/background", "platform.png")
 platform_image = pygame.image.load(platform_image_path).convert_alpha()
 # Cargar la imagen del fondo
-platform_image_path = os.path.join(script_dir, "data", "space3.jpg")
+platform_image_path = os.path.join(script_dir, "data/background", "space3.jpg")
 background_image = pygame.image.load(platform_image_path).convert()
 # Cargar la imagen del agujero negro
 #blackhole_image_path = os.path.join(script_dir, "data", "blackhole.png")
 #blackhole_image = pygame.image.load(blackhole_image_path).convert_alpha()
 # Cargar la imagen de los meteoros
-meteor_image_path = os.path.join(script_dir, "data", "meteor.png")
+meteor_image_path = os.path.join(script_dir, "data/effects", "meteor.png")
 meteor_image = pygame.image.load(meteor_image_path).convert_alpha()

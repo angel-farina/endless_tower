@@ -6,24 +6,21 @@ from settings import *
 
 # Clase para el personaje principal
 class Player(pygame.sprite.Sprite):
-    """
-    Define al personaje principal del juego. 
-    Hereda de pygame.sprite.Sprite para aprovechar las funcionalidades de los sprites en Pygame. 
-    El constructor __init__ inicializa las propiedades del jugador, como la imagen, la posición inicial, 
-    la velocidad y la gravedad. 
-    El método update actualiza la posición del jugador en función de la entrada del teclado 
-    y gestiona las colisiones con las plataformas. El método jump permite que el jugador salte. 
-    El método handle_platform_collision se encarga de comprobar si el jugador colisiona con alguna 
-    plataforma.
-    """
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
-        #self.image = pygame.Surface((50, 50))
-        #self.image.fill(BLUE)
-        self.image = player_image
+        self.animation_list = {
+            "idle": [],
+            "run": [],
+            "jump": [],
+            "die": []
+        }
+        self.current_animation = "idle"
+        self.animation_index = 0
+        self.load_animations()
+        self.image = self.animation_list[self.current_animation][self.animation_index]
         self.rect = self.image.get_rect()
         self.rect.centerx = WIDTH / 2
-        self.rect.bottom = HEIGHT  # Posición inicial en la parte inferior de la pantalla
+        self.rect.bottom = HEIGHT
         self.speed_x = 0
         self.speed_y = 0
         self.jump_power = -15
@@ -31,6 +28,37 @@ class Player(pygame.sprite.Sprite):
         self.jump_count = 0
         self.max_jump_count = 2
         self.can_move = False
+        self.update_time = pygame.time.get_ticks()
+        self.is_inverted = False
+
+    def load_animations(self):
+        animation_folders = {
+            "idle": self.animation_list["idle"],
+            "run": self.animation_list["run"],
+            "jump": self.animation_list["jump"],
+            "die": self.animation_list["die"]
+        }
+
+        files_path = os.path.join(script_dir, 'data', 'player_animations')
+        scale_factor = 2
+
+        for animation_name, image_list in animation_folders.items():
+            animation_folder_path = os.path.join(files_path, animation_name)
+            files = sorted(os.listdir(animation_folder_path))
+
+            for file_name in files:
+                if file_name.endswith(".png"):
+                    image_path = os.path.join(animation_folder_path, file_name)
+                    image = pygame.image.load(image_path).convert_alpha()
+                    scaled_image = pygame.transform.scale(image, (image.get_rect().width * scale_factor, image.get_rect().height * scale_factor))
+                    image_list.append(scaled_image)
+
+            if animation_name == "run":
+                inverted_images = []
+                for image in self.animation_list["run"]:
+                    inverted_image = pygame.transform.flip(image, True, False)
+                    inverted_images.append(inverted_image)
+                self.animation_list["run_inverted"] = inverted_images[::-1]
 
     def update(self):
         if self.can_move:
@@ -38,8 +66,17 @@ class Player(pygame.sprite.Sprite):
             keys = pygame.key.get_pressed()
             if keys[pygame.K_LEFT]:
                 self.speed_x = -5
-            if keys[pygame.K_RIGHT]:
+                self.is_running = True
+                self.is_inverted = True
+                self.current_animation = "run_inverted"
+            elif keys[pygame.K_RIGHT]:
                 self.speed_x = 5
+                self.is_running = True
+                self.is_inverted = False
+                self.current_animation = "run"
+            else:
+                self.is_running = False
+                self.current_animation = "idle"
 
             self.rect.x += self.speed_x
             self.rect.y += self.speed_y
@@ -49,23 +86,27 @@ class Player(pygame.sprite.Sprite):
             self.speed_y += self.gravity
             self.handle_platform_collision()
 
+            self.play_animation()
+            screen.blit(self.image, self.rect)
+
     def jump(self):
         global game_started
         if self.jump_count < self.max_jump_count:
             if not self.can_move:
-                self.can_move = True  # Habilitar el movimiento al primer salto
+                self.can_move = True
                 for plat in platforms:
                     plat.can_move = True
-                game_started = True  # Iniciar el juego y detener la visualización del texto inicial
+                game_started = True
             self.speed_y = self.jump_power
             if self.speed_x != 0:
                 self.speed_y -= abs(self.speed_x) * 0.5
             self.jump_count += 1
+            self.current_animation = "jump"
 
     def handle_platform_collision(self):
-        self.rect.y += 5  # Actualizar posición del jugador antes de verificar las colisiones
+        self.rect.y += 5
         hits = pygame.sprite.spritecollide(self, platforms, False)
-        self.rect.y -= 5  # Restaurar posición del jugador
+        self.rect.y -= 5
 
         if hits:
             lowest_platform = max(hits, key=lambda plat: plat.rect.bottom)
@@ -73,6 +114,25 @@ class Player(pygame.sprite.Sprite):
                 self.rect.bottom = lowest_platform.rect.top
                 self.speed_y = 0
                 self.jump_count = 0
+
+    def play_animation(self):
+        animation_images = self.animation_list[self.current_animation]
+
+        # Obtener el retardo de tiempo específico para la animación actual
+        animation_cooldown = 200  # Retardo predeterminado de 200 milisegundos entre fotogramas
+        
+        current_time = pygame.time.get_ticks()
+        if current_time - self.update_time > animation_cooldown:
+            self.update_time = current_time
+            self.animation_index += 1
+
+            if self.animation_index >= len(animation_images):
+                if self.current_animation == "run_inverted":
+                    self.animation_index = 0
+                else:
+                    self.animation_index = 0 if self.current_animation == "jump" else 1
+
+        self.image = animation_images[self.animation_index % len(animation_images)]
 
 # Clase para las plataformas
 class Platform(pygame.sprite.Sprite):
@@ -148,6 +208,7 @@ parallax_offsets = [0, 0, 0]
 Se crean instancias de pygame.sprite.Group() para almacenar los sprites del jugador, 
 las plataformas y los meteoros.
 """
+
 # Creación de grupos de sprites
 all_sprites = pygame.sprite.Group()
 platforms = pygame.sprite.Group()
@@ -182,7 +243,7 @@ def initial_text():
     """
     # Configuración de la fuente y el tamaño del texto
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    font_path = os.path.join(script_dir, "data", "PublicPixel-z84yD.ttf")
+    font_path = os.path.join(script_dir, "data/fonts", "PublicPixel-z84yD.ttf")
     font_name = font_path
     font_size = 11
     font = pygame.font.Font(font_name, font_size)
@@ -202,7 +263,7 @@ def show_score(score):
     """
     # Configuración de la fuente y el tamaño del texto
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    font_path = os.path.join(script_dir, "data", "PublicPixel-z84yD.ttf")
+    font_path = os.path.join(script_dir, "data/fonts", "PublicPixel-z84yD.ttf")
     font_name = font_path
     font_size = 15
     font = pygame.font.Font(font_name, font_size)
@@ -250,7 +311,7 @@ def get_name():
 
         # Configuración de la fuente y el tamaño del texto
         script_dir = os.path.dirname(os.path.abspath(__file__))
-        font_path = os.path.join(script_dir, "data", "PublicPixel-z84yD.ttf")
+        font_path = os.path.join(script_dir, "data/fonts", "PublicPixel-z84yD.ttf")
         font_name = font_path
         font_size = 30
         font_size_dos = 12
@@ -298,7 +359,7 @@ if check_if_table_exists():
 sound_manager = SoundManager()
 
 # Reproducir la música de fondo constantemente
-sound_manager.play_background_music()
+#sound_manager.play_background_music()
 
 # Ciclo del juego
 running = True
@@ -353,6 +414,8 @@ while running:
 
     if not game_started:  # Verificar si el juego ha comenzado
         initial_text()
+        # Reproducir la música de fondo constantemente
+        sound_manager.play_background_music()
     else:
         #screen.blit(background_image, (0, 0))  # Dibuja la imagen de fondo en la posición (0, 0)
         all_sprites.draw(screen)
@@ -363,7 +426,7 @@ while running:
 
         # Mostrar el puntaje en pantalla
         show_score(score)
-
+    
     # Actualización de la pantalla
     pygame.display.flip()
 

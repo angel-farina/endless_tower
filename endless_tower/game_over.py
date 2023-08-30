@@ -12,7 +12,7 @@ def show_game_over_screen(screen_width, screen_height):
 
     # Configuración de la fuente y el tamaño del texto
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    font_path = os.path.join(script_dir, "data", "PublicPixel-z84yD.ttf")
+    font_path = os.path.join(script_dir, "data/fonts", "PublicPixel-z84yD.ttf")
     font_name = font_path
     font_size = 48
     font = pygame.font.Font(font_name, font_size)

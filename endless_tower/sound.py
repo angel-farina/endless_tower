@@ -5,8 +5,8 @@ class SoundManager:
     def __init__(self):
         pygame.mixer.init()
         script_dir = os.path.dirname(os.path.abspath(__file__))
-        self.jump_sound = pygame.mixer.Sound(os.path.join(script_dir, "data", "jump.mp3"))
-        self.background_music = pygame.mixer.music.load(os.path.join(script_dir, "data", "theme.mp3"))
+        self.jump_sound = pygame.mixer.Sound(os.path.join(script_dir, "data/sounds", "jump.mp3"))
+        self.background_music = pygame.mixer.music.load(os.path.join(script_dir, "data/sounds", "theme.mp3"))
         
     def play_jump_sound(self):
         self.jump_sound.set_volume(0.1)
